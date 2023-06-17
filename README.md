@@ -29,7 +29,7 @@ print("Predict Label is:", [i.item() for i in preds.data])
 
 ### 示例
 
-在以下示例中，我们将使用 `OodCls` 类对一组随机数据进行分类预测。这里使用一个假的 `Model` 类作为模型。
+在以下示例中，我们将使用 `OodCls` 类对一组随机数据进行分类预测。
 
 ```python
 from oodcls import OodCls
