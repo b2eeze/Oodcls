@@ -1,4 +1,14 @@
 from oodcls import OodCls
+import torch
+from torchvision import datasets, transforms
+from torch.utils.data import ConcatDataset, DataLoader, TensorDataset
+import matplotlib.pyplot as plt
+import os
+import torchvision
+import numpy as np
+from torch.autograd import Variable
+
+import torch.nn.functional as F
 
 ood_cls = OodCls()
 
@@ -14,7 +24,6 @@ transform_cifar10 = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))
 ])
-
 
 train_cifar10 = datasets.CIFAR10(root='./data/', train=True, download=True, transform=transform_cifar10)
 test_cifar10 = datasets.CIFAR10(root='./data/', train=False, transform=transform_cifar10)
@@ -49,7 +58,6 @@ label_list1 = [10 for label in label_list1]
 label_list2 = test_kmnist.targets
 label_list2 = [10 for label in label_list2]
 
-# print(label_list)
 # 将修改后的标签列表更新到数据集中
 train_kmnist.targets = torch.tensor(label_list1, dtype=torch.long)
 test_kmnist.targets = torch.tensor(label_list2, dtype=torch.long)
@@ -70,23 +78,14 @@ label_list1 = [10 for label in label_list1]
 label_list2 = test_fmnist.targets
 label_list2 = [10 for label in label_list2]
 
-# print(label_list)
-# 将修改后的标签列表更新到数据集中
 train_fmnist.targets = torch.tensor(label_list1, dtype=torch.long)
 test_fmnist.targets = torch.tensor(label_list2, dtype=torch.long)
 # print(test_cifar10)
-
-# 检查数据类型是否与 mnist 一致
-# print(type(train_cifar10.targets))
-
 
 # 加载 MNIST 数据集
 
 train_mnist = datasets.MNIST(root='./data/', train=True, download=True, transform=transform)
 test_mnist = datasets.MNIST(root="./data/", train = False, transform = transform)
-
-# 检查数据类型
-# print(type(train_mnist.targets))
 
 
 # 合并数据集
@@ -95,38 +94,37 @@ train_data = ConcatDataset([train_cifar10, train_mnist, train_kmnist, train_fmni
 test_data = ConcatDataset([test_cifar10, test_mnist, test_kmnist, test_fmnist])
 
 
-# cifar_train = TensorDataset(train_cifar10.data.float(), train_cifar10.targets)
-# 完成
-
-
-# print(test_data.target)
-
+#***********************************************************************************************************
+#***********************************************************************************************************
 
 # 导入准备好的数据
-
-# imgs = [test_data[i][0] for i in range(3)]
-
 imgs = torch.randn(torch.Size([100, 1, 28, 28]))
 for i in range(100):
     imgs[i], _ = test_data[i*100]
-    
-# print(imgs)
-
+# 加入cpu里
 imgs = torch.tensor([item.cpu().detach().numpy() for item in imgs]).cuda()
 
-
-print(imgs.shape)
-
-# 准备输入数据
+# 导入随机生成的数据
 # imgs = torch.randn(5, 1, 28, 28)
 # imgs = torch.tensor([item.cpu().detach().numpy() for item in imgs]).cuda()
+
+
+#**********************************************************************************************************
+#**********************************************************************************************************
+
 
 # 进行预测
 preds = ood_cls.classify(imgs)
 
-# print(preds.shape)
+# 输出检查(在jupyter notebook里有输出，与预测值相符合)
+img = torchvision.utils.make_grid(imgs)
+img = img.cpu().numpy().transpose(1,2,0)
 
-# print("Predict Label is:",  preds[2])
+std = [0.5]
+mean = [0.5]
+img = img*std+mean
+plt.imshow(img)
+
 
 
 
