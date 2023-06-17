@@ -44,34 +44,34 @@ class Model(torch.nn.Module):
 class OodCls:
     def __init__(self):
        self.M = Model()
+       self.M = self.M.cuda()
        self.M.load_state_dict(torch.load('model_parameter_ood.pkl')) 
+    
+    def misc(self, x):
+        # 转为灰度图像
+        x_gray = transforms.Grayscale(x)
     
     def classify(self, imgs : torch.Tensor) -> torch.Tensor:
         
         # 获取输入张量的维度
-        num_dims = imgs.ndim
+        num_dims = imgs.size()[0]
         
         data_loader = torch.utils.data.DataLoader(dataset = imgs,
                                           batch_size = num_dims,
                                           shuffle = True)
         x = next(iter(data_loader))
-        x = Variable(x)
-        preds = self.M(x)
-        _, preds = torch.max(preds, 1)
         
-       
+        # 图形优化
+        x_modify = self.misc(x)
+        
+        x_test = Variable(x)
+        preds = self.M(x_test)
+        _, preds = torch.max(preds, 1)
+        print("Predict Label is:", [ i.item() for i in preds.data])
         
         return preds
 
-ood_cls = OodCls()
 
-# 准备输入数据
-imgs = torch.randn(4, 1, 28, 28)
-
-# 进行预测
-preds = ood_cls.classify(imgs)
-
-print("Predict Label is:", [i.item() for i in preds.data])
 
 
 
